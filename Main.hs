@@ -1,6 +1,6 @@
 module Main where
 import Tipos         
-import Funciones     
+import FuncionesBasicas 
 import Validaciones  
 import Reportes      
 import Arbol        

@@ -1,4 +1,4 @@
-mmodule FuncionesBasicas where
+module FuncionesBasicas where
 
 import Tipos
 
