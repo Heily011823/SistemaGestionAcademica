@@ -29,28 +29,34 @@ menuPrincipal mat = do
 
     case opcion of
 
-        --  AGREGAR ESTUDIANTE
+        --  AGREGAR ESTUDIANTE 
         "1" -> do
             putStrLn "Ingrese codigo:"
-            cod <- getLine
+            codInput <- getLine
 
-            putStrLn "Ingrese nombre:"
-            nombre <- getLine
+            case validarCodigo codInput of
+                Left err -> do
+                    putStrLn err
+                    menuPrincipal mat
 
-            let nuevo = Estudiante cod nombre [] []
+                Right cod -> do
+                    putStrLn "Ingrese nombre:"
+                    nombre <- getLine
 
-            let existe = any (\e -> codigo e == cod) (estudiantes mat)
+                    let nuevo = Estudiante cod nombre [] []
 
-            if existe then do
-                putStrLn "Error: codigo duplicado"
-                menuPrincipal mat
-            else do
-                let nuevaMateria = mat { estudiantes = nuevo : estudiantes mat }
-                putStrLn "Estudiante agregado"
-                menuPrincipal nuevaMateria
+                    let existe = any (\e -> codigo e == cod) (estudiantes mat)
+
+                    if existe then do
+                        putStrLn "Error: codigo duplicado"
+                        menuPrincipal mat
+                    else do
+                        let nuevaMateria = mat { estudiantes = nuevo : estudiantes mat }
+                        putStrLn "Estudiante agregado"
+                        menuPrincipal nuevaMateria
 
 
-        -- AGREGAR CALIFICACION 
+        --  AGREGAR CALIFICACION 
         "2" -> do
             putStrLn "Ingrese codigo del estudiante:"
             cod <- getLine
@@ -59,17 +65,15 @@ menuPrincipal mat = do
             notaStr <- getLine
             let nota = read notaStr :: Double
 
-            --  Verificar si existe el estudiante
+            -- Verificar si existe el estudiante
             let existe = any (\e -> codigo e == cod) (estudiantes mat)
 
             if not existe then do
                 putStrLn "Error: estudiante no encontrado"
                 menuPrincipal mat
             else do
-                -- Aplicar validacion con Either
                 let resultado = map (procesarNota cod nota) (estudiantes mat)
 
-                -- Verificar si hubo errores
                 let errores = [e | Left e <- resultado]
 
                 if not (null errores) then do
@@ -111,7 +115,7 @@ menuPrincipal mat = do
 
 
 
--- usa Either + historial
+-- FUNCION Either y historial
 procesarNota :: String -> Double -> Estudiante -> Either String Estudiante
 procesarNota cod nota est
     | codigo est /= cod = Right est
