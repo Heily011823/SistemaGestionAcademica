@@ -35,6 +35,30 @@ agregarCalificacion nota estudiante
             Right notaCorrecta ->
                 Right estudiante { califs = califs estudiante ++ [notaCorrecta] }
 
+-- Eliminar Calificación
+eliminarCalificacion :: Double -> Estudiante -> Either String Estudiante
+eliminarCalificacion nota est
+    | not (nota `elem` califs est) =
+        Left "La nota no existe en el estudiante"
+    | otherwise =
+        Right est {
+            califs = filter (/= nota) (califs est),
+            historial = historial est ++ [EliminarNota nota]
+        }
+
+-- Modificar Calificación
+modificarCalificacion :: Double -> Double -> Estudiante -> Either String Estudiante
+modificarCalificacion vieja nueva est
+    | not (vieja `elem` califs est) =
+        Left "La nota a modificar no existe"
+    | otherwise =
+        case validarCalificacion nueva of
+            Left err -> Left err
+            Right nva ->
+                Right est {
+                    califs = map (\x -> if x == vieja then nva else x) (califs est),
+                    historial = historial est ++ [ModificarNota vieja nva]
+                }
 
 --
 -- PARTE 8 - VALIDACIONES AVANZADAS
@@ -104,3 +128,4 @@ validarCodigo cod
 -- Funcion auxiliar recursiva para saber si es digito
 esDigito :: Char -> Bool
 esDigito c = c >= '0' && c <= '9'
+
