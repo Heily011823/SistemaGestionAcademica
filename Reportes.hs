@@ -22,7 +22,7 @@ estadoEstudiante est =
         Nothing -> "Sin notas"
         Just p  -> if p >= 3.0 then "Aprobado" else "Reprobado"
 
--- REPORTE DE ESTUDIANTE
+-- REPORTE DE ESTUDIANTE 
 reporteEstudiante :: Estudiante -> String
 reporteEstudiante est =
     "REPORTE DEL ESTUDIANTE\n" ++
@@ -30,7 +30,8 @@ reporteEstudiante est =
     "Nombre: " ++ nombreEst est ++ "\n" ++
     "Calificaciones: " ++ show (califs est) ++ "\n" ++
     "Promedio: " ++ mostrarPromedio (califs est) ++ "\n" ++
-    "Estado: " ++ estadoEstudiante est ++ "\n"
+    "Estado: " ++ estadoEstudiante est ++ "\n" ++
+    "Historial: " ++ show (historial est) ++ "\n"
 
 -- REPORTE DE MATERIA 
 reporteMateria :: Materia -> String
