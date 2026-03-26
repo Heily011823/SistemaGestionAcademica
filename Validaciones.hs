@@ -3,6 +3,10 @@ module Validaciones where
 import Tipos
 
 
+--
+-- PARTE 4 - VALIDACION
+--
+
 -- Validar calificación
 
 validarCalificacion :: Double -> Either String Double
@@ -33,6 +37,51 @@ agregarCalificacion nota estudiante =
             Right estudiante { califs = califs estudiante ++ [notaCorrecta] }
 
 
+
+-- 
+-- PARTE 8 - VALIDACIONES AVANZADAS
+-- 
+
+-- Validar un estudiante con mensajes personalizados
+
+validarEstudianteAvanzado :: Estudiante -> Either String Estudiante
+validarEstudianteAvanzado estudiante
+    | null (nombreEst estudiante) = Left "El estudiante no tiene nombre"
+    | null (califs estudiante)    = Left "El estudiante no tiene calificaciones"
+    | otherwise =
+        case validarEstudiante estudiante of
+            Left err -> Left ("Hubo un error en las calificaciones: " ++ err)
+            Right est -> Right est
+
+
+-- Validar una materia completa con mensajes personalizados
+
+validarMateriaAvanzada :: Materia -> Either String Materia
+validarMateriaAvanzada materia =
+    case validarCodigosUnicos materia of
+        Left err -> Left ("Hubo un error en los códigos: " ++ err)
+        Right mat ->
+            let resultados = map validarEstudianteAvanzado (estudiantes mat)
+                errores = [e | Left e <- resultados]
+            in if null errores
+               then Right mat
+               else Left ("Hubo errores en estudiantes:\n" ++ unlines errores)
+
+
+-- Agregar una calificación con mensaje personalizado
+
+agregarCalificacionAvanzado :: Double -> Estudiante -> Either String Estudiante
+agregarCalificacionAvanzado nota estudiante =
+    case agregarCalificacion nota estudiante of
+        Left err -> Left ("No se pudo agregar la calificación: " ++ err)
+        Right est -> Right est
+
+
+
+
+--
+-- PARTE 12 - DUPLICADOS
+--
 
 -- Validar que no haya códigos duplicados en una materia
 

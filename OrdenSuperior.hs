@@ -4,6 +4,11 @@ import Tipos
 import FuncionesBasicas
 
 
+-- 
+-- PARTE 3 - ORDEN SUPERIOR
+-- 
+
+
 -- Estudiantes Aprobados
 
 estudiantesAprobados :: Materia -> [Estudiante]
