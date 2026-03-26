@@ -17,18 +17,19 @@ clasificar n
   | n < 4.5        = Just Notable
   | otherwise      = Just Excelente
 
+
 -- 
 -- PARTE 9 - HISTORIAL
 -- 
 
--- Representa cambios en notas
 data Cambio
   = AgregarNota Double
   | EliminarNota Double
   | ModificarNota Double Double
   deriving (Show, Eq)
 
--- Estudiante con historial incluido
+
+-- ESTUDIANTE 
 data Estudiante = Estudiante
   { codigo :: String
   , nombreEst :: String
@@ -36,7 +37,8 @@ data Estudiante = Estudiante
   , historial :: [Cambio]
   } deriving (Show, Eq)
 
--- Materia
+
+-- MATERIA
 data Materia = Materia
   { nombreMat :: String
   , creditos :: Int
