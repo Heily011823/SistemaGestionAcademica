@@ -24,89 +24,107 @@ menuPrincipal mat = do
     putStrLn "4. Modificar calificacion"
     putStrLn "5. Ver reportes"
     putStrLn "6. Ver ranking"
-    putStrLn "7. Salir"
+    putStrLn "7. Funciones avanzadas"
+    putStrLn "8. Salir"
     opcion <- getLine
 
     case opcion of
 
-        -- AGREGAR ESTUDIANTE
-        "1" -> do
-            putStrLn "Codigo:"
-            codInput <- getLine
-
-            case validarCodigo codInput of
-                Left err -> print err >> menuPrincipal mat
-
-                Right cod -> do
-                    putStrLn "Nombre:"
-                    nombre <- getLine
-
-                    let existe = any (\e -> codigo e == cod) (estudiantes mat)
-
-                    if existe then
-                        putStrLn "Codigo duplicado" >> menuPrincipal mat
-                    else do
-                        let nuevo = Estudiante cod nombre [] []
-                        menuPrincipal mat { estudiantes = nuevo : estudiantes mat }
+        "1" -> agregarEstudiante mat
+        "2" -> agregarNota mat
+        "3" -> eliminarNota mat
+        "4" -> modificarNota mat
+        "5" -> verReportes mat
+        "6" -> verRanking mat
+        "7" -> submenuAvanzado mat
+        "8" -> putStrLn "Saliendo..."
+        _   -> menuPrincipal mat
 
 
-        -- AGREGAR NOTA
-        "2" -> do
-            cod <- pedir "Codigo:"
-            nota <- fmap read (pedir "Nota:")
+--  FUNCIONES DE MENU
 
-            manejarResultado mat (actualizarMateria mat (procesarNota cod nota))
+agregarEstudiante mat = do
+    codInput <- pedir "Codigo:"
 
+    case validarCodigo codInput of
+        Left err -> print err >> menuPrincipal mat
 
-        -- ELIMINAR
-        "3" -> do
-            cod <- pedir "Codigo:"
-            nota <- fmap read (pedir "Nota a eliminar:")
+        Right cod -> do
+            nombre <- pedir "Nombre:"
 
-            manejarResultado mat (actualizarMateria mat (procesarEliminar cod nota))
+            let existe = any (\e -> codigo e == cod) (estudiantes mat)
 
-
-        -- MODIFICAR
-        "4" -> do
-            cod <- pedir "Codigo:"
-            vieja <- fmap read (pedir "Nota actual:")
-            nueva <- fmap read (pedir "Nueva nota:")
-
-            manejarResultado mat (actualizarMateria mat (procesarModificar cod vieja nueva))
+            if existe then
+                putStrLn "Codigo duplicado" >> menuPrincipal mat
+            else do
+                let nuevo = Estudiante cod nombre [] []
+                menuPrincipal mat { estudiantes = nuevo : estudiantes mat }
 
 
-        -- REPORTES
+agregarNota mat = do
+    cod <- pedir "Codigo:"
+    nota <- fmap read (pedir "Nota:")
+    manejarResultado mat (actualizarMateria mat (procesarNota cod nota))
+
+
+eliminarNota mat = do
+    cod <- pedir "Codigo:"
+    nota <- fmap read (pedir "Nota a eliminar:")
+    manejarResultado mat (actualizarMateria mat (procesarEliminar cod nota))
+
+
+modificarNota mat = do
+    cod <- pedir "Codigo:"
+    vieja <- fmap read (pedir "Nota actual:")
+    nueva <- fmap read (pedir "Nueva nota:")
+    manejarResultado mat (actualizarMateria mat (procesarModificar cod vieja nueva))
+
+
+verReportes mat = do
+    putStrLn (reporteMateria mat)
+    putStrLn "\nPromedio materia:"
+    print (promedioMateria mat)
+    menuPrincipal mat
+
+
+verRanking mat = do
+    putStrLn "\nRANKING:"
+    let r = rankingEstudiantes mat
+    if null r
+        then putStrLn "Sin datos"
+        else mapM_ (\(p,n) -> putStrLn (n ++ " -> " ++ show p)) r
+    menuPrincipal mat
+
+
+-- SUBMENU 
+submenuAvanzado mat = do
+    putStrLn "\nFUNCIONES AVANZADAS"
+    putStrLn "1. Aprobados"
+    putStrLn "2. Reprobados"
+    putStrLn "3. Nombres aprobados"
+    putStrLn "4. Tabla promedios"
+    putStrLn "5. Calificaciones validas"
+    putStrLn "6. Volver"
+
+    op <- getLine
+
+    case op of
+        "1" -> print (estudiantesAprobados mat) >> submenuAvanzado mat
+        "2" -> print (estudiantesReprobados mat) >> submenuAvanzado mat
+        "3" -> print (nombresAprobados mat) >> submenuAvanzado mat
+        "4" -> print (tablaPromedios mat) >> submenuAvanzado mat
         "5" -> do
-            putStrLn (reporteMateria mat)
-            print (promedioMateria mat)
-            menuPrincipal mat
+            mapM_ (\e -> print (nombreEst e, calificacionesValidas e)) (estudiantes mat)
+            submenuAvanzado mat
+        "6" -> menuPrincipal mat
+        _   -> submenuAvanzado mat
 
 
-        -- RANKING
-        "6" -> do
-            print (rankingEstudiantes mat)
-            menuPrincipal mat
+-- HELPERS
 
-
-        -- SALIR
-        "7" -> putStrLn "Saliendo..."
-
-
-        _ -> menuPrincipal mat
-
-
--- helpers de IO
-pedir :: String -> IO String
 pedir msg = putStrLn msg >> getLine
 
-
-manejarResultado :: Materia -> Either [String] Materia -> IO ()
 manejarResultado mat resultado =
     case resultado of
-        Left errs -> do
-            mapM_ putStrLn errs
-            menuPrincipal mat
-
-        Right nueva -> do
-            putStrLn "Operacion exitosa"
-            menuPrincipal nueva
+        Left errs -> mapM_ putStrLn errs >> menuPrincipal mat
+        Right nueva -> putStrLn "Operacion exitosa" >> menuPrincipal nueva

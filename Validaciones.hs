@@ -42,9 +42,16 @@ eliminarCalificacion nota est
         Left "La nota no existe en el estudiante"
     | otherwise =
         Right est {
-            califs = filter (/= nota) (califs est),
+            califs = eliminarUna nota (califs est),
             historial = historial est ++ [EliminarNota nota]
         }
+
+-- elimina solo la primera ocurrencia (recursivo)
+eliminarUna :: Double -> [Double] -> [Double]
+eliminarUna _ [] = []
+eliminarUna n (x:xs)
+    | n == x    = xs
+    | otherwise = x : eliminarUna n xs
 
 -- Modificar Calificación
 modificarCalificacion :: Double -> Double -> Estudiante -> Either String Estudiante
