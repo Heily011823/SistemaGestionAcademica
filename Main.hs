@@ -50,7 +50,7 @@ menuPrincipal mat = do
                 menuPrincipal nuevaMateria
 
 
-        -- AGREGAR CALIFICACION
+        -- AGREGAR CALIFICACION 
         "2" -> do
             putStrLn "Ingrese codigo del estudiante:"
             cod <- getLine
@@ -59,12 +59,29 @@ menuPrincipal mat = do
             notaStr <- getLine
             let nota = read notaStr :: Double
 
-            let nuevaLista = map (agregarNotaAEstudiante cod nota) (estudiantes mat)
+            --  Verificar si existe el estudiante
+            let existe = any (\e -> codigo e == cod) (estudiantes mat)
 
-            let nuevaMateria = mat { estudiantes = nuevaLista }
+            if not existe then do
+                putStrLn "Error: estudiante no encontrado"
+                menuPrincipal mat
+            else do
+                -- Aplicar validacion con Either
+                let resultado = map (procesarNota cod nota) (estudiantes mat)
 
-            putStrLn "Proceso completado"
-            menuPrincipal nuevaMateria
+                -- Verificar si hubo errores
+                let errores = [e | Left e <- resultado]
+
+                if not (null errores) then do
+                    putStrLn "Error al agregar nota:"
+                    mapM_ putStrLn errores
+                    menuPrincipal mat
+                else do
+                    let nuevosEst = [e | Right e <- resultado]
+                    let nuevaMateria = mat { estudiantes = nuevosEst }
+
+                    putStrLn "Calificacion agregada correctamente"
+                    menuPrincipal nuevaMateria
 
 
         -- REPORTES
@@ -87,20 +104,21 @@ menuPrincipal mat = do
         "5" -> putStrLn "Saliendo..."
 
 
+        -- ERROR
         _ -> do
             putStrLn "Opcion invalida"
             menuPrincipal mat
 
 
 
--- usa Either y historial
-agregarNotaAEstudiante :: String -> Double -> Estudiante -> Estudiante
-agregarNotaAEstudiante cod nota est
-    | codigo est /= cod = est
+-- usa Either + historial
+procesarNota :: String -> Double -> Estudiante -> Either String Estudiante
+procesarNota cod nota est
+    | codigo est /= cod = Right est
     | otherwise =
         case agregarCalificacion nota est of
-            Left err -> est  -- no cambia si hay error
+            Left err -> Left err
             Right nuevoEst ->
-                nuevoEst {
+                Right nuevoEst {
                     historial = historial est ++ [AgregarNota nota]
                 }
