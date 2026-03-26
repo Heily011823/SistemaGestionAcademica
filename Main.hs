@@ -9,6 +9,7 @@ import Arbol
 main :: IO ()
 main = do
     putStrLn "SISTEMA DE GESTION ACADEMICA"
+
     -- Iniciamos con una materia vacía o de ejemplo
     let materiaInicial = Materia "Paradigmas" 4 [] 
     menuPrincipal materiaInicial
@@ -29,8 +30,8 @@ menuPrincipal mat = do
         "1" -> do
             putStrLn "Ingrese nombre del estudiante:"
             nombre <- getLine
-            -- Aquí se llamaría a 'validarEstudiante' de Persona 2 
-            putStrLn "Estudiante procesado (Lógica de Persona 2)."
+            -- Aquí se llamaría a 'validarEstudiante' 
+            putStrLn "Estudiante procesado."
             menuPrincipal mat
 
         "2" -> do
