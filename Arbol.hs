@@ -16,12 +16,18 @@ insertarEnArbol (p1, n1) (Nodo (p2, n2) izq der)
 
 -- Función que genera el árbol desde la Materia
 arbolDesdeMateria :: Materia -> Arbol ParPromedio
-arbolDesdeMateria (Materia _ _ ests) = foldr insertar (Vacio) pares
+arbolDesdeMateria (Materia _ _ ests) = foldr insertar Vacio pares
   where
-    pares = map (\e -> (sum (califs e) / fromIntegral (length (califs e)), nombreEst e)) ests
+    
+    estsValidos = filter (\e -> length (califs e) > 0) ests
+
+    pares = map (\e -> 
+        (sum (califs e) / fromIntegral (length (califs e)), nombreEst e)
+        ) estsValidos
+
     insertar p arb = insertarEnArbol p arb
 
--- Función para obtener la lista final del ranking 
+-- Función para obtener el ranking 
 rankingEstudiantes :: Materia -> [(Double, String)]
 rankingEstudiantes m = treeToList (arbolDesdeMateria m)
   where
