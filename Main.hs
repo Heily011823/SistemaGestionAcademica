@@ -14,7 +14,7 @@ main = do
     menuPrincipal materiaInicial
 
 
--- MENU PRINCIPAL (CON ESTADO)
+-- MENU PRINCIPAL
 menuPrincipal :: Materia -> IO ()
 menuPrincipal mat = do
     putStrLn "\nMENU PRINCIPAL"
@@ -28,7 +28,7 @@ menuPrincipal mat = do
 
     case opcion of
 
-        -- AGREGAR ESTUDIANTE 
+        --  AGREGAR ESTUDIANTE 
         "1" -> do
             putStrLn "Ingrese codigo del estudiante:"
             cod <- getLine
@@ -36,9 +36,9 @@ menuPrincipal mat = do
             putStrLn "Ingrese nombre del estudiante:"
             nombre <- getLine
 
-            let nuevo = Estudiante cod nombre []
+            
+            let nuevo = Estudiante cod nombre [] []
 
-            -- Validar duplicados
             let existe = any (\e -> codigo e == cod) (estudiantes mat)
 
             if existe then do
@@ -50,7 +50,7 @@ menuPrincipal mat = do
                 menuPrincipal nuevaMateria
 
 
-        -- REPORTES 
+        -- REPORTES
         "2" -> do
             putStrLn "\nREPORTE DE MATERIA"
             putStrLn (reporteMateria mat)
@@ -67,7 +67,7 @@ menuPrincipal mat = do
             menuPrincipal mat
 
 
-        -- RANKING (ARBOL)
+        -- RANKING
         "3" -> do
             let rank = rankingEstudiantes mat
             putStrLn "\nRANKING DE ESTUDIANTES (Mayor a menor)"
