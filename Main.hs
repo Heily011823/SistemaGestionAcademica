@@ -1,128 +1,112 @@
 module Main where
+
 import Tipos         
 import FuncionesBasicas 
 import Validaciones  
 import Reportes      
 import Arbol        
 import OrdenSuperior  
+import Servicios     
 
--- MAIN
 main :: IO ()
 main = do
     putStrLn "SISTEMA DE GESTION ACADEMICA"
-    let materiaInicial = Materia "Paradigmas" 4 [] 
+    let materiaInicial = Materia "Paradigmas" 4 []
     menuPrincipal materiaInicial
 
 
--- MENU PRINCIPAL
 menuPrincipal :: Materia -> IO ()
 menuPrincipal mat = do
     putStrLn "\nMENU PRINCIPAL"
     putStrLn "1. Agregar estudiante"
-    putStrLn "2. Agregar calificacion a estudiante"
-    putStrLn "3. Ver reportes"
-    putStrLn "4. Ver ranking"
-    putStrLn "5. Salir"
-    putStr "\nSeleccione una opcion: "
-    
+    putStrLn "2. Agregar calificacion"
+    putStrLn "3. Eliminar calificacion"
+    putStrLn "4. Modificar calificacion"
+    putStrLn "5. Ver reportes"
+    putStrLn "6. Ver ranking"
+    putStrLn "7. Salir"
     opcion <- getLine
 
     case opcion of
 
-        --  AGREGAR ESTUDIANTE 
+        -- AGREGAR ESTUDIANTE
         "1" -> do
-            putStrLn "Ingrese codigo:"
+            putStrLn "Codigo:"
             codInput <- getLine
 
             case validarCodigo codInput of
-                Left err -> do
-                    putStrLn err
-                    menuPrincipal mat
+                Left err -> print err >> menuPrincipal mat
 
                 Right cod -> do
-                    putStrLn "Ingrese nombre:"
+                    putStrLn "Nombre:"
                     nombre <- getLine
-
-                    let nuevo = Estudiante cod nombre [] []
 
                     let existe = any (\e -> codigo e == cod) (estudiantes mat)
 
-                    if existe then do
-                        putStrLn "Error: codigo duplicado"
-                        menuPrincipal mat
+                    if existe then
+                        putStrLn "Codigo duplicado" >> menuPrincipal mat
                     else do
-                        let nuevaMateria = mat { estudiantes = nuevo : estudiantes mat }
-                        putStrLn "Estudiante agregado"
-                        menuPrincipal nuevaMateria
+                        let nuevo = Estudiante cod nombre [] []
+                        menuPrincipal mat { estudiantes = nuevo : estudiantes mat }
 
 
-        --  AGREGAR CALIFICACION 
+        -- AGREGAR NOTA
         "2" -> do
-            putStrLn "Ingrese codigo del estudiante:"
-            cod <- getLine
+            cod <- pedir "Codigo:"
+            nota <- fmap read (pedir "Nota:")
 
-            putStrLn "Ingrese nota:"
-            notaStr <- getLine
-            let nota = read notaStr :: Double
+            manejarResultado mat (actualizarMateria mat (procesarNota cod nota))
 
-            -- Verificar si existe el estudiante
-            let existe = any (\e -> codigo e == cod) (estudiantes mat)
 
-            if not existe then do
-                putStrLn "Error: estudiante no encontrado"
-                menuPrincipal mat
-            else do
-                let resultado = map (procesarNota cod nota) (estudiantes mat)
+        -- ELIMINAR
+        "3" -> do
+            cod <- pedir "Codigo:"
+            nota <- fmap read (pedir "Nota a eliminar:")
 
-                let errores = [e | Left e <- resultado]
+            manejarResultado mat (actualizarMateria mat (procesarEliminar cod nota))
 
-                if not (null errores) then do
-                    putStrLn "Error al agregar nota:"
-                    mapM_ putStrLn errores
-                    menuPrincipal mat
-                else do
-                    let nuevosEst = [e | Right e <- resultado]
-                    let nuevaMateria = mat { estudiantes = nuevosEst }
 
-                    putStrLn "Calificacion agregada correctamente"
-                    menuPrincipal nuevaMateria
+        -- MODIFICAR
+        "4" -> do
+            cod <- pedir "Codigo:"
+            vieja <- fmap read (pedir "Nota actual:")
+            nueva <- fmap read (pedir "Nueva nota:")
+
+            manejarResultado mat (actualizarMateria mat (procesarModificar cod vieja nueva))
 
 
         -- REPORTES
-        "3" -> do
+        "5" -> do
             putStrLn (reporteMateria mat)
-
-            putStrLn "\nPromedio de la materia:"
             print (promedioMateria mat)
-
             menuPrincipal mat
 
 
         -- RANKING
-        "4" -> do
+        "6" -> do
             print (rankingEstudiantes mat)
             menuPrincipal mat
 
 
         -- SALIR
-        "5" -> putStrLn "Saliendo..."
+        "7" -> putStrLn "Saliendo..."
 
 
-        -- ERROR
-        _ -> do
-            putStrLn "Opcion invalida"
+        _ -> menuPrincipal mat
+
+
+-- helpers de IO
+pedir :: String -> IO String
+pedir msg = putStrLn msg >> getLine
+
+
+manejarResultado :: Materia -> Either [String] Materia -> IO ()
+manejarResultado mat resultado =
+    case resultado of
+        Left errs -> do
+            mapM_ putStrLn errs
             menuPrincipal mat
 
-
-
--- FUNCION Either y historial
-procesarNota :: String -> Double -> Estudiante -> Either String Estudiante
-procesarNota cod nota est
-    | codigo est /= cod = Right est
-    | otherwise =
-        case agregarCalificacion nota est of
-            Left err -> Left err
-            Right nuevoEst ->
-                Right nuevoEst {
-                    historial = historial est ++ [AgregarNota nota]
-                }
+        Right nueva -> do
+            putStrLn "Operacion exitosa"
+            menuPrincipal nueva
