@@ -3,6 +3,7 @@ module OrdenSuperior where
 import Tipos
 import FuncionesBasicas
 
+
 -- Estudiantes Aprobados
 
 estudiantesAprobados :: Materia -> [Estudiante]
@@ -16,7 +17,7 @@ estudiantesReprobados :: Materia -> [Estudiante]
 estudiantesReprobados materia = filter (\estudiante -> not (estaAprobado estudiante)) (estudiantes materia)
 
 
--- Promedio de la materia
+-- Promedio de la materia cursada
 
 promedioMateria :: Materia -> Maybe Double
 promedioMateria materia =
