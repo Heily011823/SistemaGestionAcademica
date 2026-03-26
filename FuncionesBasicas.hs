@@ -1,45 +1,61 @@
-module FuncionesBasicas where
+mmodule FuncionesBasicas where
+
 import Tipos
 
--- Parte 2
+-- 
+-- PARTE 2 - FUNCIONES BASICAS
+-- 
 
+-- Promedio simple
 promedio :: [Double] -> Maybe Double
 promedio [] = Nothing
 promedio xs = Just (sum xs / fromIntegral (length xs))
 
-cantidadCalifs :: Estudiante -> Int
-cantidadCalifs e = length (califs e)
-
+-- Verifica si aprueba
 estaAprobado :: Estudiante -> Bool
 estaAprobado e =
   case promedio (califs e) of
-    Just p -> p >= 3
+    Just p  -> p >= 3.0
     Nothing -> False
 
+-- Mejor nota
 mejorNota :: Estudiante -> Maybe Double
-mejorNota e =
-  if null (califs e)
-  then Nothing
-  else Just (maximum (califs e))
+mejorNota e
+  | null (califs e) = Nothing
+  | otherwise       = Just (maximum (califs e))
 
+-- Peor nota
 peorNota :: Estudiante -> Maybe Double
-peorNota e =
-  if null (califs e)
-  then Nothing
-  else Just (minimum (califs e))
+peorNota e
+  | null (califs e) = Nothing
+  | otherwise       = Just (minimum (califs e))
 
--- Parte 10 (maximo 5 notas)
+-- Cantidad de notas
+cantidadCalifs :: Estudiante -> Int
+cantidadCalifs e = length (califs e)
 
+
+-- 
+-- PARTE 10 - LIMITE DE NOTAS
+--
+
+-- Verifica si puede agregar otra nota (max 5)
 puedeAgregarNota :: Estudiante -> Bool
 puedeAgregarNota e = length (califs e) < 5
 
--- Parte 11 (ponderación)
 
-type Calificacion = (Double, Double)
+-- 
+-- PARTE 11 - PONDERACION
+-- 
 
+type Calificacion = (Double, Double) -- (nota, peso)
+
+-- Promedio ponderado
 promedioPonderado :: [Calificacion] -> Maybe Double
 promedioPonderado [] = Nothing
 promedioPonderado xs =
-  let suma = sum [n * p | (n,p) <- xs]
-      pesos = sum [p | (_,p) <- xs]
-  in Just (suma / pesos)
+  let sumaPesos = sum (map snd xs)
+      sumaTotal = sum (map (\(n,p) -> n * p) xs)
+  in if sumaPesos == 0
+        then Nothing
+        else Just (sumaTotal / sumaPesos)
