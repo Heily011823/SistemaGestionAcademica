@@ -4,60 +4,82 @@ import FuncionesBasicas
 import Validaciones  
 import Reportes      
 import Arbol        
+import OrdenSuperior  
 
--- Estructura principal del Programa 
+-- MAIN
 main :: IO ()
 main = do
     putStrLn "SISTEMA DE GESTION ACADEMICA"
-
-    -- Iniciamos con una materia vacía o de ejemplo
     let materiaInicial = Materia "Paradigmas" 4 [] 
     menuPrincipal materiaInicial
 
+
+-- MENU PRINCIPAL (CON ESTADO)
 menuPrincipal :: Materia -> IO ()
 menuPrincipal mat = do
     putStrLn "\nMENU PRINCIPAL"
-    putStrLn "1. Gestion de Estudiantes (Agregar/Validar)" 
-    putStrLn "2. Ver Reportes (Estudiante/Materia)"        
-    putStrLn "3. Ver Ranking Academico (Arbol)"            
-    putStrLn "4. Historial de Cambios"                     
-    putStrLn "5. Configurar Ponderacion"                   
-    putStrLn "6. Salir"
+    putStrLn "1. Gestion de Estudiantes (Agregar)"
+    putStrLn "2. Ver Reportes"
+    putStrLn "3. Ver Ranking Academico"
+    putStrLn "4. Salir"
     putStr "\nSeleccione una opcion: "
     
     opcion <- getLine
+
     case opcion of
+
+        -- AGREGAR ESTUDIANTE 
         "1" -> do
+            putStrLn "Ingrese codigo del estudiante:"
+            cod <- getLine
+
             putStrLn "Ingrese nombre del estudiante:"
             nombre <- getLine
-            -- Aquí se llamaría a 'validarEstudiante' 
-            putStrLn "Estudiante procesado."
-            menuPrincipal mat
 
+            let nuevo = Estudiante cod nombre []
+
+            -- Validar duplicados
+            let existe = any (\e -> codigo e == cod) (estudiantes mat)
+
+            if existe then do
+                putStrLn "Error: ya existe un estudiante con ese codigo"
+                menuPrincipal mat
+            else do
+                let nuevaMateria = mat { estudiantes = nuevo : estudiantes mat }
+                putStrLn "Estudiante agregado correctamente"
+                menuPrincipal nuevaMateria
+
+
+        -- REPORTES 
         "2" -> do
-            -- Parte 5: Reportes
-            putStrLn $ reporteMateria mat
+            putStrLn "\nREPORTE DE MATERIA"
+            putStrLn (reporteMateria mat)
+
+            putStrLn "\nPromedio de la materia:"
+            print (promedioMateria mat)
+
+            putStrLn "\nEstudiantes aprobados:"
+            print (nombresAprobados mat)
+
+            putStrLn "\nTabla de promedios:"
+            print (tablaPromedios mat)
+
             menuPrincipal mat
 
+
+        -- RANKING (ARBOL)
         "3" -> do
-            -- Parte 6: Árbol y Ranking
             let rank = rankingEstudiantes mat
-            putStrLn "RANKING DE NOTAS"
+            putStrLn "\nRANKING DE ESTUDIANTES (Mayor a menor)"
             print rank
             menuPrincipal mat
 
-        "4" -> do
-            -- Parte 9: Historial 
-            putStrLn "Mostrando historial de cambios..."
-            menuPrincipal mat
 
-        "5" -> do
-            -- Parte 11: Ponderación
-            putStrLn "Configurando promedio ponderado..."
-            menuPrincipal mat
+        -- SALIR
+        "4" -> putStrLn "Saliendo del sistema..."
 
-        "6" -> putStrLn "Saliendo del sistema. ¡Hasta luego!"
 
+        -- ERROR
         _ -> do
             putStrLn "Opcion no valida."
             menuPrincipal mat
