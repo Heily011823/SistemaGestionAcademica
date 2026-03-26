@@ -29,7 +29,6 @@ menuPrincipal mat = do
     opcion <- getLine
 
     case opcion of
-
         "1" -> agregarEstudiante mat
         "2" -> agregarNota mat
         "3" -> eliminarNota mat
@@ -38,11 +37,10 @@ menuPrincipal mat = do
         "6" -> verRanking mat
         "7" -> submenuAvanzado mat
         "8" -> putStrLn "Saliendo..."
-        _   -> menuPrincipal mat
+        _   -> putStrLn "Opcion invalida" >> menuPrincipal mat
 
 
---  FUNCIONES DE MENU
-
+--  AGREGAR ESTUDIANTE
 agregarEstudiante mat = do
     codInput <- pedir "Codigo:"
 
@@ -55,76 +53,136 @@ agregarEstudiante mat = do
             let existe = any (\e -> codigo e == cod) (estudiantes mat)
 
             if existe then
-                putStrLn "Codigo duplicado" >> menuPrincipal mat
+                putStrLn "Error: codigo duplicado" >> menuPrincipal mat
             else do
                 let nuevo = Estudiante cod nombre [] []
+                putStrLn "Estudiante agregado"
                 menuPrincipal mat { estudiantes = nuevo : estudiantes mat }
 
 
+-- AGREGAR NOTA
 agregarNota mat = do
     cod <- pedir "Codigo:"
-    nota <- fmap read (pedir "Nota:")
-    manejarResultado mat (actualizarMateria mat (procesarNota cod nota))
+
+    let existe = any (\e -> codigo e == cod) (estudiantes mat)
+
+    if not existe then do
+        putStrLn "Error: estudiante no encontrado"
+        menuPrincipal mat
+    else do
+        nota <- fmap read (pedir "Nota:")
+        manejarResultado mat (actualizarMateria mat (procesarNota cod nota))
 
 
+--  ELIMINAR NOTA
 eliminarNota mat = do
     cod <- pedir "Codigo:"
-    nota <- fmap read (pedir "Nota a eliminar:")
-    manejarResultado mat (actualizarMateria mat (procesarEliminar cod nota))
+
+    let existe = any (\e -> codigo e == cod) (estudiantes mat)
+
+    if not existe then do
+        putStrLn "Error: estudiante no encontrado"
+        menuPrincipal mat
+    else do
+        nota <- fmap read (pedir "Nota a eliminar:")
+        manejarResultado mat (actualizarMateria mat (procesarEliminar cod nota))
 
 
+--  MODIFICAR NOTA
 modificarNota mat = do
     cod <- pedir "Codigo:"
-    vieja <- fmap read (pedir "Nota actual:")
-    nueva <- fmap read (pedir "Nueva nota:")
-    manejarResultado mat (actualizarMateria mat (procesarModificar cod vieja nueva))
+
+    let existe = any (\e -> codigo e == cod) (estudiantes mat)
+
+    if not existe then do
+        putStrLn "Error: estudiante no encontrado"
+        menuPrincipal mat
+    else do
+        vieja <- fmap read (pedir "Nota actual:")
+        nueva <- fmap read (pedir "Nueva nota:")
+        manejarResultado mat (actualizarMateria mat (procesarModificar cod vieja nueva))
 
 
+--  REPORTES
 verReportes mat = do
     putStrLn (reporteMateria mat)
+
     putStrLn "\nPromedio materia:"
     print (promedioMateria mat)
+
     menuPrincipal mat
 
 
+--  RANKING
 verRanking mat = do
     putStrLn "\nRANKING:"
     let r = rankingEstudiantes mat
+
     if null r
-        then putStrLn "Sin datos"
+        then putStrLn "No hay datos"
         else mapM_ (\(p,n) -> putStrLn (n ++ " -> " ++ show p)) r
+
     menuPrincipal mat
 
 
 -- SUBMENU 
 submenuAvanzado mat = do
     putStrLn "\nFUNCIONES AVANZADAS"
-    putStrLn "1. Aprobados"
-    putStrLn "2. Reprobados"
+    putStrLn "1. Estudiantes aprobados"
+    putStrLn "2. Estudiantes reprobados"
     putStrLn "3. Nombres aprobados"
-    putStrLn "4. Tabla promedios"
+    putStrLn "4. Tabla de promedios"
     putStrLn "5. Calificaciones validas"
     putStrLn "6. Volver"
 
     op <- getLine
 
     case op of
-        "1" -> print (estudiantesAprobados mat) >> submenuAvanzado mat
-        "2" -> print (estudiantesReprobados mat) >> submenuAvanzado mat
-        "3" -> print (nombresAprobados mat) >> submenuAvanzado mat
-        "4" -> print (tablaPromedios mat) >> submenuAvanzado mat
-        "5" -> do
-            mapM_ (\e -> print (nombreEst e, calificacionesValidas e)) (estudiantes mat)
+
+        "1" -> do
+            let r = estudiantesAprobados mat
+            if null r then putStrLn "No hay estudiantes aprobados" else print r
             submenuAvanzado mat
+
+        "2" -> do
+            let r = estudiantesReprobados mat
+            if null r then putStrLn "No hay estudiantes reprobados" else print r
+            submenuAvanzado mat
+
+        "3" -> do
+            let r = nombresAprobados mat
+            if null r then putStrLn "No hay aprobados" else print r
+            submenuAvanzado mat
+
+        "4" -> do
+            let r = tablaPromedios mat
+            if null r then putStrLn "No hay datos" else print r
+            submenuAvanzado mat
+
+        "5" -> do
+            if null (estudiantes mat)
+                then putStrLn "No hay estudiantes"
+                else mapM_ (\e -> print (nombreEst e, calificacionesValidas e)) (estudiantes mat)
+            submenuAvanzado mat
+
         "6" -> menuPrincipal mat
-        _   -> submenuAvanzado mat
+
+        _ -> submenuAvanzado mat
 
 
 -- HELPERS
 
+pedir :: String -> IO String
 pedir msg = putStrLn msg >> getLine
 
+
+manejarResultado :: Materia -> Either [String] Materia -> IO ()
 manejarResultado mat resultado =
     case resultado of
-        Left errs -> mapM_ putStrLn errs >> menuPrincipal mat
-        Right nueva -> putStrLn "Operacion exitosa" >> menuPrincipal nueva
+        Left errs -> do
+            mapM_ putStrLn errs
+            menuPrincipal mat
+
+        Right nueva -> do
+            putStrLn "Operacion exitosa"
+            menuPrincipal nueva
