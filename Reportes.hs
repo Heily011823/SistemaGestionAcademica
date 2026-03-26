@@ -8,13 +8,14 @@ promedioMaybe :: [Double] -> Maybe Double
 promedioMaybe [] = Nothing
 promedioMaybe xs = Just (sum xs / fromIntegral (length xs))
 
--- Mostrar promedio
+-- Mostrar promedio 
 mostrarPromedio :: [Double] -> String
-mostrarPromedio [] = "Sin notas"
-mostrarPromedio xs = show (sum xs / fromIntegral (length xs))
+mostrarPromedio xs =
+    case promedioMaybe xs of
+        Nothing -> "Sin notas"
+        Just p  -> show p
 
 -- Estado del estudiante
-
 estadoEstudiante :: Estudiante -> String
 estadoEstudiante est =
     case promedioMaybe (califs est) of
@@ -22,7 +23,6 @@ estadoEstudiante est =
         Just p  -> if p >= 3.0 then "Aprobado" else "Reprobado"
 
 -- REPORTE DE ESTUDIANTE
-
 reporteEstudiante :: Estudiante -> String
 reporteEstudiante est =
     "REPORTE DEL ESTUDIANTE\n" ++
@@ -32,8 +32,7 @@ reporteEstudiante est =
     "Promedio: " ++ mostrarPromedio (califs est) ++ "\n" ++
     "Estado: " ++ estadoEstudiante est ++ "\n"
 
--- REPORTE DE MATERIA
-
+-- REPORTE DE MATERIA 
 reporteMateria :: Materia -> String
 reporteMateria mat =
     "REPORTE DE MATERIA\n" ++
@@ -41,4 +40,6 @@ reporteMateria mat =
     "Creditos: " ++ show (creditos mat) ++ "\n" ++
     "Cantidad de estudiantes: " ++ show (length (estudiantes mat)) ++ "\n\n" ++
     "ESTUDIANTES\n" ++
-    concatMap (\e -> reporteEstudiante e ++ "\n") (estudiantes mat)
+    if null (estudiantes mat)
+       then "No hay estudiantes registrados\n"
+       else concatMap (\e -> reporteEstudiante e ++ "\n") (estudiantes mat)
