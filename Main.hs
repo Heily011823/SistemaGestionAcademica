@@ -40,27 +40,34 @@ menuPrincipal mat = do
         _   -> putStrLn "Opcion invalida" >> menuPrincipal mat
 
 
---  AGREGAR ESTUDIANTE
+-- AGREGAR ESTUDIANTE
+agregarEstudiante :: Materia -> IO ()
 agregarEstudiante mat = do
     codInput <- pedir "Codigo:"
 
     case validarCodigo codInput of
-        Left err -> print err >> menuPrincipal mat
+        Left err -> do
+            putStrLn err
+            menuPrincipal mat
 
         Right cod -> do
             nombre <- pedir "Nombre:"
 
-            let existe = any (\e -> codigo e == cod) (estudiantes mat)
+            let nuevo = Estudiante cod nombre [] []
+            let nuevaMateria = mat { estudiantes = nuevo : estudiantes mat }
 
-            if existe then
-                putStrLn "Error: codigo duplicado" >> menuPrincipal mat
-            else do
-                let nuevo = Estudiante cod nombre [] []
-                putStrLn "Estudiante agregado"
-                menuPrincipal mat { estudiantes = nuevo : estudiantes mat }
+            case validarCodigosUnicos nuevaMateria of
+                Left err -> do
+                    putStrLn err
+                    menuPrincipal mat
+
+                Right matValida -> do
+                    putStrLn "Estudiante agregado"
+                    menuPrincipal matValida
 
 
 -- AGREGAR NOTA
+agregarNota :: Materia -> IO ()
 agregarNota mat = do
     cod <- pedir "Codigo:"
 
@@ -74,7 +81,8 @@ agregarNota mat = do
         manejarResultado mat (actualizarMateria mat (procesarNota cod nota))
 
 
---  ELIMINAR NOTA
+-- ELIMINAR NOTA
+eliminarNota :: Materia -> IO ()
 eliminarNota mat = do
     cod <- pedir "Codigo:"
 
@@ -88,7 +96,8 @@ eliminarNota mat = do
         manejarResultado mat (actualizarMateria mat (procesarEliminar cod nota))
 
 
---  MODIFICAR NOTA
+-- MODIFICAR NOTA
+modificarNota :: Materia -> IO ()
 modificarNota mat = do
     cod <- pedir "Codigo:"
 
@@ -103,7 +112,8 @@ modificarNota mat = do
         manejarResultado mat (actualizarMateria mat (procesarModificar cod vieja nueva))
 
 
---  REPORTES
+-- REPORTES
+verReportes :: Materia -> IO ()
 verReportes mat = do
     putStrLn (reporteMateria mat)
 
@@ -113,7 +123,8 @@ verReportes mat = do
     menuPrincipal mat
 
 
---  RANKING
+-- RANKING
+verRanking :: Materia -> IO ()
 verRanking mat = do
     putStrLn "\nRANKING:"
     let r = rankingEstudiantes mat
@@ -125,7 +136,8 @@ verRanking mat = do
     menuPrincipal mat
 
 
--- SUBMENU 
+-- SUBMENU
+submenuAvanzado :: Materia -> IO ()
 submenuAvanzado mat = do
     putStrLn "\nFUNCIONES AVANZADAS"
     putStrLn "1. Estudiantes aprobados"
@@ -138,7 +150,6 @@ submenuAvanzado mat = do
     op <- getLine
 
     case op of
-
         "1" -> do
             let r = estudiantesAprobados mat
             if null r then putStrLn "No hay estudiantes aprobados" else print r
