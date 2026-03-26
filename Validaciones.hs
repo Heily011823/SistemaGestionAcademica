@@ -92,3 +92,15 @@ hayDuplicados [] = False
 hayDuplicados (x:xs)
     | x `elem` xs = True
     | otherwise   = hayDuplicados xs
+
+-- Función validar codigo estudiante
+
+validarCodigo :: String -> Either String String
+validarCodigo cod
+    | length cod /= 6 = Left "El codigo debe tener exactamente 6 digitos"
+    | not (all esDigito cod) = Left "El codigo solo debe contener numeros"
+    | otherwise = Right cod
+
+-- Funcion auxiliar recursiva para saber si es digito
+esDigito :: Char -> Bool
+esDigito c = c >= '0' && c <= '9'
